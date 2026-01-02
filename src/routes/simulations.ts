@@ -222,7 +222,8 @@
 //   }
 // );
 
-import { Router } from "express";
+// import { Router } from "express";
+import { Router, type Request, type Response } from "express";
 import { db } from "../db.js";
 import { requireAuth, requireRole } from "./auth.js";
 import { emitEvent } from "../websocket.js";
@@ -281,7 +282,7 @@ simulationsRouter.post(
   "/sql-injection",
   requireAuth,
   requireRole(["admin", "analyst"]),
-  async (req, res) => {
+  async (req: Request, res: Response) => {
     const preview = "SELECT * FROM users WHERE username = 'admin' OR 1=1 --";
     const severity = classifySeverityForSQLi(preview);
     const prevention = "Input validation and sanitization (simulation)";
@@ -389,7 +390,7 @@ simulationsRouter.post(
   "/ddos",
   requireAuth,
   requireRole(["admin", "analyst"]),
-  async (req, res) => {
+  async (req: Request, res: Response) => {
     const hits = 3000;
     const preview = `Burst traffic detected: hits_last_minute=${hits}`;
     const severity = classifySeverityForDDoS(hits);
@@ -495,7 +496,7 @@ simulationsRouter.get(
   "/history",
   requireAuth,
   requireRole(["admin", "analyst", "auditor"]),
-  (req, res) => {
+  (req: Request, res: Response) => {
     const rows = db
       .prepare("SELECT * FROM threats ORDER BY detected_at DESC LIMIT 100")
       .all();
