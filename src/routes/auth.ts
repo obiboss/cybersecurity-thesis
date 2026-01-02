@@ -1,4 +1,4 @@
-import { Router } from "express";
+import { Router, Request, Response, NextFunction } from "express";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import { db } from "../db.js";
@@ -38,7 +38,7 @@ export const authRouter = Router();
  * Username + password verification
  * Initiates simulated MFA flow
  */
-authRouter.post("/login", (req, res) => {
+authRouter.post("/login", (req: Request, res: Response) => {
   const { username, password } = req.body || {};
 
   if (!username || !password) {
@@ -87,7 +87,7 @@ authRouter.post("/login", (req, res) => {
  * MFA VERIFICATION (Step 2)
  * Verifies OTP and issues JWT
  */
-authRouter.post("/verify-mfa", (req, res) => {
+authRouter.post("/verify-mfa", (req: Request, res: Response) => {
   const { mfa_token, otp } = req.body || {};
 
   if (!mfa_token || !otp) {
@@ -139,7 +139,7 @@ authRouter.post("/verify-mfa", (req, res) => {
 /**
  * CURRENT USER
  */
-authRouter.get("/me", requireAuth, (req, res) => {
+authRouter.get("/me", requireAuth, (req: Request, res: Response) => {
   const user_id = Number(req.userId);
 
   const user = db
@@ -158,10 +158,9 @@ authRouter.get("/me", requireAuth, (req, res) => {
 /**
  * AUTH MIDDLEWARE
  */
-export function requireAuth(req, res, next) {
+export function requireAuth(req: Request, res: Response, next: NextFunction) {
   try {
     const auth = req.headers.authorization;
-
     if (!auth || !auth.startsWith("Bearer ")) {
       return res
         .status(401)
@@ -174,7 +173,7 @@ export function requireAuth(req, res, next) {
     req.userId = payload.sub;
     req.role = payload.role;
 
-    return next();
+    next();
   } catch {
     return res.status(401).json({ message: "Unauthorized" });
   }
@@ -184,11 +183,11 @@ export function requireAuth(req, res, next) {
  * ROLE-BASED ACCESS CONTROL
  */
 export function requireRole(roles: string[]) {
-  return (req, res, next) => {
-    if (!roles.includes(req.role)) {
+  return (req: Request, res: Response, next: NextFunction) => {
+    if (!roles.includes(req.role!)) {
       return res.status(403).json({ message: "Forbidden" });
     }
-    return next();
+    next();
   };
 }
 

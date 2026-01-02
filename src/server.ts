@@ -5,6 +5,7 @@ import "dotenv/config";
 import http from "http";
 import { Server as SocketIOServer } from "socket.io";
 import { decayRiskPressure, recalcSecurityScore } from "./metrics.js";
+import { emitEvent } from "./websocket.js";
 import { app } from "./app.js";
 import { setIo } from "./websocket.js";
 
@@ -40,14 +41,31 @@ const io = new SocketIOServer(server, {
 setIo(io);
 
 // ✅ ONLY seed in non-production
+// if (process.env.NODE_ENV !== "production") {
+//   await import("./seed.js");
+// }
+
 if (process.env.NODE_ENV !== "production") {
-  await import("./seed.js");
+  import("./seed.js").then(() => {
+    console.log("Seed complete");
+  });
 }
 
+// Smooth decay: smaller steps, more frequent updates
+const DECAY_AMOUNT = 2; // reduce risk_pressure by 1–2 points per tick
+const INTERVAL_MS = 10_000; // every 10 seconds (or 15_000 for 15 seconds)
+
+// Repeatedly decay risk pressure and update metrics
 setInterval(() => {
-  decayRiskPressure(5);
-  recalcSecurityScore();
-}, 60_000); // every 1 minute
+  // Reduce risk pressure by DECAY_AMOUNT
+  decayRiskPressure(DECAY_AMOUNT);
+
+  // Recalculate security score after decay
+  const updatedMetrics = recalcSecurityScore();
+
+  // Emit updated metrics to all connected dashboards
+  emitEvent("dashboard_update", { metrics: updatedMetrics });
+}, INTERVAL_MS);
 
 // Start server
 server.listen(PORT, () => {
