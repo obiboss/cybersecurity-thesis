@@ -36,7 +36,9 @@
 // app.use("/api/metrics", metricsRouter);
 
 //FOR PRODUCTION USE ONLY
-import express from "express";
+// import express from "express";
+import express, { Request, Response } from "express";
+
 import cors from "cors";
 import { allowedOrigins } from "./server.js";
 
@@ -68,7 +70,13 @@ app.options("*", cors());
 
 app.use(express.json());
 
-app.get("/", (_req, res) => {
+// app.get("/", (_req, res) => {
+//   res.json({
+//     message: "Cybersecurity Simulation API",
+//   });
+// });
+
+app.get("/", (_req: Request, res: Response) => {
   res.json({
     message: "Cybersecurity Simulation API",
   });
