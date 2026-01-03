@@ -45,9 +45,15 @@ setIo(io);
 //   await import("./seed.js");
 // }
 
-if (process.env.NODE_ENV !== "production") {
+// if (process.env.NODE_ENV !== "production") {
+//   import("./seed.js").then(() => {
+//     console.log("Seed complete");
+//   });
+// }
+
+if (process.env.SEED_ADMIN === "true") {
   import("./seed.js").then(() => {
-    console.log("Seed complete");
+    console.log("✅ Admin seed complete");
   });
 }
 
